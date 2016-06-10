@@ -9,9 +9,9 @@ namespace DecryptESD
 {
    internal class Program
    {
-      private static CryptoKey[] keys;
+      private static CryptoKey[] _keys;
 
-      private static unsafe void Main(string[] args)
+      private static void Main(string[] args)
       {
          if (args.Length == 0)
          {
@@ -19,58 +19,70 @@ namespace DecryptESD
             return;
          }
 
-         XDocument xmlKeys = XDocument.Load("CryptoKeys.xml");
-         keys =
-            (from k in xmlKeys.Descendants("key")
-             orderby int.Parse(k.Attribute("build").Value)
-             select new CryptoKey(k.Attribute("build").Value, k.Attribute("value").Value)).ToArray();
+         LoadKeyXml();
 
-         using (FileStream fStr = new FileStream(args[0], FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
+         ReadWimFile(args[0]);
+      }
+
+      private static unsafe void ReadWimFile(string path)
+      {
+         using (FileStream fStr = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
+         using (BinaryReader br = new BinaryReader(fStr))
          {
-            WimHeader header;
-
-            var headerBytes = new byte[sizeof(WimHeader)];
-            fStr.Read(headerBytes, 0, headerBytes.Length);
-            fixed (byte* headerPtr = headerBytes)
+            WimHeader whHeader;
+            byte[] bHeader = br.ReadBytes(sizeof(WimHeader));
+            fixed (byte* pHeader = bHeader)
             {
-               header = Marshal.PtrToStructure<WimHeader>((IntPtr)headerPtr);
+               whHeader = Marshal.PtrToStructure<WimHeader>((IntPtr) pHeader);
             }
 
-            fStr.Position = header.XmlData.OffsetInWim;
-            var xmlBytes = new byte[header.XmlData.SizeInWim];
-            fStr.Read(xmlBytes, 0, xmlBytes.Length);
+            fStr.Position = whHeader.XmlData.OffsetInWim;
+            var bXml = br.ReadBytes((int) whHeader.XmlData.SizeInWim);
 
-            XDocument xdoc;
-            using (MemoryStream mStr = new MemoryStream(xmlBytes))
+            XDocument xdWimData;
+            using (MemoryStream mStr = new MemoryStream(bXml))
             {
-               xdoc = XDocument.Load(mStr);
+               xdWimData = XDocument.Load(mStr);
             }
 
-            string aesKey = xdoc.Descendants("KEY")
-                                .First()
-                                .Value;
+            XElement xeEsdData = xdWimData.Root?.Element("ESD");
+            if (xeEsdData == null)
+            {
+               throw new Exception("The provided file is not an ESD");
+            }
 
-            int build = int.Parse(xdoc.Descendants("BUILD").Last().Value);
+            byte[] bAesKey = Convert.FromBase64String(xeEsdData.Element("KEY")?.Value ?? "");
+
+            int build = int.Parse(xdWimData.Descendants("BUILD").Last().Value);
 
             using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())
             {
-               rsa.ImportCspBlob(keys.First(k => k.FirstBuild >= build).Key);
-               byte[] aeskey = rsa.Decrypt(Convert.FromBase64String(aesKey), true);
+               rsa.ImportCspBlob(_keys.Last(k => k.FirstBuild <= build).Key);
+               var aeskey = rsa.Decrypt(bAesKey, true);
 
-               foreach (var range in xdoc.Descendants("RANGE"))
+               foreach (XElement range in xdWimData.Descendants("RANGE"))
                {
-                  int encByteSize = ((int.Parse(range.Attribute("Bytes").Value) / 16) + 1) * 16;
-                  byte[] encBytes = new byte[encByteSize];
+                  int encByteSize = (int.Parse(range.Attribute("Bytes").Value) / 16 + 1) * 16;
+                  var encBytes = new byte[encByteSize];
 
-                  fStr.Position = long.Parse(range.Attribute("Offset")
-                                               .Value);
+                  fStr.Position = long.Parse(range.Attribute("Offset").Value);
                   fStr.Read(encBytes, 0, encBytes.Length);
 
-                  using (var rijndaelManaged = new RijndaelManaged() { Key = aeskey, IV = Convert.FromBase64String("AAAAAAAAAAAAAAAAAAAAAA=="), Mode = CipherMode.CBC, Padding = PaddingMode.None })
-                  using (var memoryStream = new MemoryStream(encBytes))
-                  using (var cryptoStream = new CryptoStream(memoryStream, rijndaelManaged.CreateDecryptor(aeskey, Convert.FromBase64String("AAAAAAAAAAAAAAAAAAAAAA==")), CryptoStreamMode.Read))
+                  using (
+                     RijndaelManaged rijndaelManaged = new RijndaelManaged
+                     {
+                        Key = aeskey,
+                        IV = Convert.FromBase64String("AAAAAAAAAAAAAAAAAAAAAA=="),
+                        Mode = CipherMode.CBC,
+                        Padding = PaddingMode.None
+                     })
+                  using (MemoryStream memoryStream = new MemoryStream(encBytes))
+                  using (
+                     CryptoStream cryptoStream = new CryptoStream(memoryStream,
+                        rijndaelManaged.CreateDecryptor(aeskey, Convert.FromBase64String("AAAAAAAAAAAAAAAAAAAAAA==")),
+                        CryptoStreamMode.Read))
                   {
-                     byte[] decBytes = new byte[encByteSize - 16];
+                     var decBytes = new byte[encByteSize - 16];
                      cryptoStream.Read(decBytes, 0, decBytes.Length);
 
                      fStr.Position = long.Parse(range.Attribute("Offset").Value);
@@ -79,6 +91,17 @@ namespace DecryptESD
                   }
                }
             }
+         }
+      }
+
+      private static void LoadKeyXml()
+      {
+         using (FileStream fStr = new FileStream("CryptoKeys.xml", FileMode.Open, FileAccess.Read, FileShare.Read))
+         {
+            XDocument xKeys = XDocument.Load(fStr);
+            _keys = (from k in xKeys.Descendants("key")
+                     orderby int.Parse(k.Attribute("build").Value)
+                     select new CryptoKey(k.Attribute("build").Value, k.Attribute("value").Value)).ToArray();
          }
       }
    }
