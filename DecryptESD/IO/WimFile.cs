@@ -19,13 +19,14 @@ namespace DecryptESD.IO
 
       public WimHeader Header { get; private set; }
       public IntegrityTable IntegrityTable { get; private set; }
+      public XElement XmlEsdMetadata { get; private set; }
       public XDocument XmlMetadata { get; private set; }
 
       public WimFile(string path)
       {
          _file = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
-         _reader = new BinaryReader(_file, Encoding.Default, true);
-         _writer = new BinaryWriter(_file, Encoding.Default, true);
+         _reader = new BinaryReader(_file, Encoding.Unicode, true);
+         _writer = new BinaryWriter(_file, Encoding.Unicode, true);
 
          ReadWimHeader();
          ReadXmlMetadata();
@@ -83,15 +84,15 @@ namespace DecryptESD.IO
          IntegrityTable = new IntegrityTable(itHeader, bbHashes);
       }
 
-      public unsafe void DecryptEsd()
+      public void DecryptEsd()
       {
-         XElement xeEsdData = XmlMetadata.Root?.Element("ESD");
-         if (xeEsdData == null)
+         XmlEsdMetadata = XmlMetadata.Root?.Element("ESD");
+         if (XmlEsdMetadata == null)
          {
             throw new Exception("The provided file is not an ESD");
          }
 
-         string b64AesKey = xeEsdData.Element("KEY")?.Value;
+         string b64AesKey = XmlEsdMetadata.Element("KEY")?.Value;
          if (string.IsNullOrEmpty(b64AesKey))
          {
             throw new Exception("The file key is missing from the metadata");
@@ -105,7 +106,7 @@ namespace DecryptESD.IO
             bAesKey = rsa.Decrypt(bAesKey, true);
          }
 
-         foreach (XElement range in xeEsdData.Descendants("RANGE"))
+         foreach (XElement range in XmlEsdMetadata.Descendants("RANGE"))
          {
             int rangeLength = int.Parse(range.Attribute("Bytes").Value);
             long rangeOffset = long.Parse(range.Attribute("Offset").Value);
@@ -136,28 +137,35 @@ namespace DecryptESD.IO
             }
          }
 
-         xeEsdData.Remove();
+         XmlEsdMetadata.Remove();
 
+         WriteXmlMetadata();
+         WriteIntegrityTable();
+         WriteWimHeader();
+      }
+
+      public void WriteXmlMetadata()
+      {
          byte[] bXml;
          using (MemoryStream msXml = new MemoryStream())
          {
             using (
                XmlWriter xw = XmlWriter.Create(msXml,
-                  new XmlWriterSettings { OmitXmlDeclaration = true, Encoding = Encoding.Unicode, Indent = true }))
+                  new XmlWriterSettings { OmitXmlDeclaration = true, Encoding = Encoding.Unicode }))
             {
                XmlMetadata.Save(xw);
             }
 
             long xmlSize = msXml.Length;
 
-            long fileSize = xmlSize + Header.XmlData.OffsetInWim + (long)Header.IntegrityTable.SizeInWim;
+            long fileSize = xmlSize + Header.XmlData.OffsetInWim + (long) Header.IntegrityTable.SizeInWim;
             XmlMetadata.Root?.Element("TOTALBYTES")?.SetValue(fileSize.ToString());
 
             msXml.Position = 0;
             msXml.SetLength(0);
             using (
                XmlWriter xw = XmlWriter.Create(msXml,
-                  new XmlWriterSettings { OmitXmlDeclaration = true, Encoding = Encoding.Unicode, Indent = true }))
+                  new XmlWriterSettings { OmitXmlDeclaration = true, Encoding = Encoding.Unicode }))
             {
                XmlMetadata.Save(xw);
             }
@@ -174,17 +182,56 @@ namespace DecryptESD.IO
          _writer.Write(bXml);
 
          whUpdated.IntegrityTable.OffsetInWim = _file.Position;
+         Header = whUpdated;
+      }
 
-         byte[] bIntegrityTableHeader = new byte[sizeof(IntegrityTableHeader)];
+      public unsafe void WriteIntegrityTable()
+      {
+         _file.Position = Header.IntegrityTable.OffsetInWim;
+
+         foreach (XElement range in XmlEsdMetadata.Descendants("RANGE"))
+         {
+            int rangeLength = int.Parse(range.Attribute("Bytes").Value);
+            long rangeOffset = long.Parse(range.Attribute("Offset").Value);
+
+            long chunkStart = rangeOffset - sizeof(WimHeader);
+            long chunkStartNum = chunkStart / IntegrityTable.Header.ChunkSize;
+            long chunkEnd = rangeOffset + rangeLength - sizeof(WimHeader);
+            long chunkEndNum = chunkEnd / IntegrityTable.Header.ChunkSize;
+
+
+            using (SHA1 sha = SHA1.Create())
+            {
+               for (long i = chunkStartNum; i <= chunkEndNum; i++)
+               {
+                  _file.Position = sizeof(WimHeader) + i * IntegrityTable.Header.ChunkSize;
+
+                  int chunkSize = _file.Position + IntegrityTable.Header.ChunkSize > Header.XmlData.OffsetInWim
+                                     ? (int) (Header.XmlData.OffsetInWim - _file.Position)
+                                     : (int) IntegrityTable.Header.ChunkSize;
+
+                  byte[] data = _reader.ReadBytes(chunkSize);
+
+                  IntegrityTable.Hashes[i] = sha.ComputeHash(data, 0, data.Length);
+               }
+            }
+         }
+
+         _file.Position = Header.IntegrityTable.OffsetInWim;
+         byte[] bItHeader = new byte[sizeof(IntegrityTableHeader)];
          IntegrityTableHeader ith = IntegrityTable.Header;
-         Marshal.Copy((IntPtr) (&ith), bIntegrityTableHeader, 0, bIntegrityTableHeader.Length);
-         _writer.Write(bIntegrityTableHeader);
+         Marshal.Copy((IntPtr) (&ith), bItHeader, 0, bItHeader.Length);
+         _writer.Write(bItHeader);
 
          foreach (byte[] b in IntegrityTable.Hashes)
          {
             _writer.Write(b);
          }
+      }
 
+      public unsafe void WriteWimHeader()
+      {
+         WimHeader whUpdated = Header;
          byte[] bWhUpdated = new byte[sizeof(WimHeader)];
          Marshal.Copy((IntPtr) (&whUpdated), bWhUpdated, 0, bWhUpdated.Length);
          _file.Position = 0;
