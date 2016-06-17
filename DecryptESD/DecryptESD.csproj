@@ -69,6 +69,10 @@
     <ManifestTimestampUrl>http://timestamp.globalsign.com/scripts/timestamp.dll</ManifestTimestampUrl>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CommandLine, Version=1.9.71.2, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
+      <HintPath>..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -79,6 +83,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CliOptions.cs" />
     <Compile Include="CryptoKey.cs" />
     <Compile Include="IO\IntegrityTable.cs" />
     <Compile Include="IO\IntegrityTableHeader.cs" />
@@ -93,6 +98,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="DecryptESD.snk" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="CryptoKeys.xml">
