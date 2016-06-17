@@ -15,6 +15,21 @@ DecryptESD currently targets .NET Framework 4.5.2, allowing it to be used back t
 * Localise into other languages
 * oh, and error handling is probably pretty important too.
 
+## Changelog
+
+* v0.3
+  * Add basic command line switches
+  * Support for multiple ESDs in batch
+  * Some basic error handling
+  * Allow specifying a key via a command line switch
+
+* v0.2
+  * Fix XML metadata
+  * Fix Integrity table
+
+* v0.1
+  * Initial release
+
 ## License
 Copyright © 2016, Thomas Hounsell.
 
