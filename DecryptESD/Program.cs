@@ -35,9 +35,16 @@ namespace DecryptESD
          {
             if (File.Exists(file))
             {
-               using (WimFile wf = new WimFile(file))
+               try
                {
-                  wf.DecryptEsd();
+                  using (WimFile wf = new WimFile(file))
+                  {
+                     wf.DecryptEsd();
+                  }
+               }
+               catch (NoValidKeyException)
+               {
+                  Console.WriteLine($"There is no valid key for \"{file}\"");
                }
             }
             else

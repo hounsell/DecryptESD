@@ -1,7 +1,7 @@
 # DecryptESD
 Remove encryption from the ESD files distributed through the Windows Store infrastructure with DecryptESD.
 
-DecryptESD currently targets .NET Framework 4.5.2, allowing it to be used back to Windows Vista SP2. I've not tested compatibility with Mono, but I don't evisage there being an issue, given that it's a self-contained assembly with no dependencies beyond the .NET Framework itself. I also plan to take it to .NET Core and test it on OS X and Linux.
+DecryptESD currently targets .NET Framework 4.5, allowing it to be used back to Windows Vista SP2. I've not tested compatibility with Mono, but I don't evisage there being an issue, given that it's a self-contained assembly with no dependencies beyond the .NET Framework itself. I also plan to take it to .NET Core and test it on OS X and Linux.
 
 ## Current State
 * ESDs are decrypted successfully, both pre-14361 and post-14361.
@@ -16,6 +16,10 @@ DecryptESD currently targets .NET Framework 4.5.2, allowing it to be used back t
 * oh, and error handling is probably pretty important too.
 
 ## Changelog
+* v0.3.1
+  * Test all keys, not just "best" key - but favour the closest key in build number
+  * Add 14342 multi ESD key
+  * Reduce requirement to .NET Framework 4.5 (down from 4.5.2)
 
 * v0.3
   * Add basic command line switches

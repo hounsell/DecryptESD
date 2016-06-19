@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DecryptESD</RootNamespace>
     <AssemblyName>DecryptESD</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile>
@@ -90,6 +90,7 @@
     <Compile Include="IO\ResourceHeader.cs" />
     <Compile Include="IO\ResourceHeaderFlags.cs" />
     <Compile Include="IO\WimHeaderFlags.cs" />
+    <Compile Include="NoValidKeyException.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IO\WimFile.cs" />

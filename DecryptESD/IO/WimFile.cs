@@ -49,7 +49,7 @@ namespace DecryptESD.IO
          byte[] bHeader = _reader.ReadBytes(sizeof(WimHeader));
          fixed (byte* pHeader = bHeader)
          {
-            Header = Marshal.PtrToStructure<WimHeader>((IntPtr) pHeader);
+            Header = (WimHeader)Marshal.PtrToStructure((IntPtr) pHeader, typeof(WimHeader));
          }
       }
 
@@ -72,7 +72,7 @@ namespace DecryptESD.IO
          IntegrityTableHeader itHeader;
          fixed (byte* pTable = bTable)
          {
-            itHeader = Marshal.PtrToStructure<IntegrityTableHeader>((IntPtr) pTable);
+            itHeader = (IntegrityTableHeader)Marshal.PtrToStructure((IntPtr) pTable, typeof(IntegrityTableHeader));
          }
 
          byte[][] bbHashes = new byte[itHeader.TableRowCount][];
@@ -100,10 +100,30 @@ namespace DecryptESD.IO
 
          byte[] bAesKey = Convert.FromBase64String(b64AesKey);
 
-         using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())
+         bool success = false;
+         foreach (byte[] cryptoKey in from k in CryptoKey.Keys orderby Math.Abs(k.FirstBuild - BuildNumber) select k.Key
+            )
          {
-            rsa.ImportCspBlob(CryptoKey.Keys.Last(k => k.FirstBuild <= BuildNumber).Key);
-            bAesKey = rsa.Decrypt(bAesKey, true);
+            try
+            {
+               using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())
+               {
+                  rsa.ImportCspBlob(cryptoKey);
+                  bAesKey = rsa.Decrypt(bAesKey, true);
+               }
+            }
+            catch (CryptographicException cex)
+            {
+               continue;
+            }
+
+            success = true;
+            break;
+         }
+
+         if (!success)
+         {
+            throw new NoValidKeyException();
          }
 
          foreach (XElement range in XmlEsdMetadata.Descendants("RANGE"))
@@ -144,7 +164,7 @@ namespace DecryptESD.IO
          WriteWimHeader();
       }
 
-      public void WriteXmlMetadata()
+      private void WriteXmlMetadata()
       {
          byte[] bXml;
          using (MemoryStream msXml = new MemoryStream())
@@ -185,7 +205,7 @@ namespace DecryptESD.IO
          Header = whUpdated;
       }
 
-      public unsafe void WriteIntegrityTable()
+      private unsafe void WriteIntegrityTable()
       {
          _file.Position = Header.IntegrityTable.OffsetInWim;
 
@@ -229,7 +249,7 @@ namespace DecryptESD.IO
          }
       }
 
-      public unsafe void WriteWimHeader()
+      private unsafe void WriteWimHeader()
       {
          WimHeader whUpdated = Header;
          byte[] bWhUpdated = new byte[sizeof(WimHeader)];
