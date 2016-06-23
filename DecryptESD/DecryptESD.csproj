@@ -90,7 +90,7 @@
     <Compile Include="IO\ResourceHeader.cs" />
     <Compile Include="IO\ResourceHeaderFlags.cs" />
     <Compile Include="IO\WimHeaderFlags.cs" />
-    <Compile Include="NoValidKeyException.cs" />
+    <Compile Include="Exceptions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IO\WimFile.cs" />

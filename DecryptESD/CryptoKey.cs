@@ -34,6 +34,12 @@ namespace DecryptESD
          }
       }
 
-      public static void UseCustomKey(string key) { Keys = new[] { new CryptoKey(0, key) }; }
+      public static void UseCustomKey(string key)
+      {
+         Keys = new[]
+         {
+            new CryptoKey(0, key)
+         };
+      }
    }
 }

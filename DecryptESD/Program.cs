@@ -24,7 +24,7 @@ namespace DecryptESD
             {
                CryptoKey.UseCustomKey(Options.CustomKey);
             }
-            catch (FormatException fex)
+            catch (FormatException)
             {
                Console.WriteLine("The key you have specified is not valid. Loading the keys from the XML file instead...");
                CryptoKey.LoadKeysFromXml();
@@ -42,14 +42,18 @@ namespace DecryptESD
                      wf.DecryptEsd();
                   }
                }
-               catch (NoValidKeyException)
+               catch (NoValidCryptoKeyException)
                {
-                  Console.WriteLine($"There is no valid key for \"{file}\"");
+                  Console.WriteLine($"We could not find the correct CryptoKey for \"{file}\".");
+               }
+               catch (UnencryptedImageException)
+               {
+                  Console.WriteLine($"You are trying to decrypt \"{file}\", but it is already decrypted.");
                }
             }
             else
             {
-               Console.WriteLine($"The file \"{file}\" does not exist");
+               Console.WriteLine($"The file \"{file}\" does not exist.");
             }
          }
       }
