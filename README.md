@@ -16,6 +16,13 @@ DecryptESD currently targets .NET Framework 4.5, allowing it to be used back to 
 * oh, and error handling is probably pretty important too.
 
 ## Changelog
+* v0.3.2
+  * No longer crash on already decrypted ESD - just skip it.
+  * Add 14371 ESD key
+  * Swap from RijndaelManaged to AesCryptoServiceProvider for decryption
+    * This uses native Windows APIs rather than is pure managed code
+    * It also uses AES-NI instructions on supporting hardware
+
 * v0.3.1
   * Test all keys, not just "best" key - but favour the closest key in build number
   * Add 14342 multi ESD key
