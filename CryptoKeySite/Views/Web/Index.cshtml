@@ -1,0 +1,82 @@
+﻿@using CryptoKeySite.Controllers
+@using CryptoKeySite.Models
+@model IEnumerable<CryptoKeySite.Models.CryptoKey>
+
+@{
+   ViewBag.Title = "Windows 10 | ESD Decryption";
+}
+
+<p>
+   @if (User.Identity.IsAuthenticated)
+   {
+      <a href="@Url.Action(nameof(WebController.Add))" class="btn-add"><i class="fa fa-plus-circle"></i>&ensp;Add a key</a>
+   }
+   <a href="@Url.Action(nameof(WebController.XmlFeed))" class="btn-info" target="_blank"><i class="fa fa-book"></i>&ensp;XML Feed</a>
+</p>
+<h3>ESD Decryption Keys</h3>
+<table class="table-listing">
+   <thead>
+   <tr>
+      <th>
+         @Html.DisplayNameFor(model => model.FirstBuild)
+      </th>
+      <th>
+         @Html.DisplayNameFor(model => model.KeyBase64)
+      </th>
+      <th>
+         @Html.DisplayNameFor(model => model.KeyExchangeAlgorithm)
+      </th>
+      <th>
+         @Html.DisplayNameFor(model => model.KeySize)
+      </th>
+      @if (User.Identity.IsAuthenticated)
+      {
+         <th></th>
+      }
+   </tr>
+   </thead>
+   <tbody>
+   @foreach (CryptoKey item in Model)
+   {
+      <tr>
+         <td>
+            @Html.DisplayFor(modelItem => item.FirstBuild)
+         </td>
+         <td>
+            <div class="break">
+               @Html.DisplayFor(modelItem => item.KeyBase64)
+            </div>
+         </td>
+         <td>
+            @Html.DisplayFor(modelItem => item.KeyExchangeAlgorithm)
+         </td>
+         <td>
+            @Html.DisplayFor(modelItem => item.KeySize)
+         </td>
+         @if (User.Identity.IsAuthenticated)
+         {
+            <td>
+               <a href="@Url.Action(nameof(WebController.Delete), new
+                        {
+                           id = item.Id
+                        })" class="table-listing-delete">
+                  <i class="fa fa-fw fa-trash"></i>
+               </a>
+            </td>
+         }
+      </tr>
+   }
+   </tbody>
+</table>
+
+<h3>Frequently asked questions</h3>
+<p>
+   <strong>What is an ESD?</strong><br />
+   An ESD is a partially-encrypted Windows Installation image. Microsoft use these images to distribute a complete Windows setup over Windows Update.
+</p>
+<p>
+   <strong>How do you decrypt an ESD?</strong><br />
+   You can use the <a href="https://github.com/hounsell/DecryptESD/" target="_blank">DecryptESD</a> program, which uses the XML feed provided by this site to automatically update.
+</p>
+
+<script type="text/javascript" src="~/res/ts/default.min.js" async="async"></script>

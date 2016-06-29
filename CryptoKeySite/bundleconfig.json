@@ -1,0 +1,8 @@
+[
+  {
+    "outputFileName": "res/ts/default.min.js",
+    "inputFiles": [
+      "res/ts/default.js"
+    ]
+  }
+]

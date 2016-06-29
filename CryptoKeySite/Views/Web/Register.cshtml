@@ -1,0 +1,30 @@
+﻿@model CryptoKeySite.Models.RegisterViewModel
+
+@{
+   ViewBag.Title = "Login";
+}
+
+@using (Html.BeginForm())
+{
+   @Html.AntiForgeryToken()
+
+   <div class="form-group">
+      @Html.LabelFor(model => model.Username)
+      @Html.EditorFor(model => model.Username)
+      @Html.ValidationMessageFor(model => model.Username, "", new { @class = "text-error" })
+   </div>
+
+   <div class="form-group">
+      @Html.LabelFor(model => model.Password)
+      @Html.EditorFor(model => model.Password)
+      @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-error" })
+   </div>
+
+   <div class="form-group">
+      @Html.LabelFor(model => model.ConfirmPassword)
+      @Html.EditorFor(model => model.ConfirmPassword)
+      @Html.ValidationMessageFor(model => model.ConfirmPassword, "", new { @class = "text-error" })
+   </div>
+
+   <input type="submit" value="Register" class="btn-submit" />
+}

@@ -1,0 +1,34 @@
+﻿@using CryptoKeySite.Controllers
+<!DOCTYPE html>
+<html>
+<head>
+   <meta charset="utf-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>@ViewBag.Title | CryptoKey Database</title>
+   <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+   <link href="~/res/scss/default.min.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+   <div class="container">
+      <header>
+         <h1><a href="~/">CryptoKey Database</a></h1>
+      </header>
+      <article>
+         @RenderBody()
+      </article>
+      <footer>
+         <p>
+            &copy; @DateTime.Now.Year, Thomas Hounsell<br />
+            @if (User.Identity.IsAuthenticated)
+            {
+               <a href="@Url.Action(nameof(WebController.Logout), "Web")">Logout</a>
+            }
+            else
+            {
+               <a href="@Url.Action(nameof(WebController.Login), "Web")">Login</a>
+            }
+         </p>
+      </footer>
+   </div>
+</body>
+</html>
