@@ -6,9 +6,8 @@ namespace CryptoKeySite.Models
 {
    public class CryptoKey : IModelWithId
    {
-      [Display(Name="First Build")]
+      [Display(Name = "First Build")]
       public int FirstBuild { get; set; }
-      public Guid Id { get; set; }
 
       public byte[] Key { get; set; }
 
@@ -44,5 +43,7 @@ namespace CryptoKeySite.Models
             }
          }
       }
+
+      public Guid Id { get; set; }
    }
 }

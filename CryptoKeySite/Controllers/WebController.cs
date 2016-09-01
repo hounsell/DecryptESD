@@ -26,8 +26,9 @@ namespace CryptoKeySite.Controllers
          IOrderedEnumerable<CryptoKey> results = (await ckr.Select()).OrderByDescending(ck => ck.FirstBuild);
 
          Response.ContentType = "text/xml";
-         XDocument xdoc = new XDocument(new XElement("keys", from r in results
-                                                             select new XElement("key", new XAttribute("build", r.FirstBuild), new XAttribute("value", r.KeyBase64))));
+         XDocument xdoc = new XDocument(new XElement("keys",
+            from r in results
+            select new XElement("key", new XAttribute("build", r.FirstBuild), new XAttribute("value", r.KeyBase64))));
 
          xdoc.Save(Response.OutputStream);
 
@@ -81,8 +82,8 @@ namespace CryptoKeySite.Controllers
             if (authSuccess)
             {
                int expiryLength = lvm.RememberMe
-                                     ? 129600
-                                     : 60;
+                  ? 129600
+                  : 60;
 
                FormsAuthenticationTicket ticket = new FormsAuthenticationTicket(lvm.Username, true, expiryLength);
                string encryptedTicket = FormsAuthentication.Encrypt(ticket);
@@ -96,8 +97,8 @@ namespace CryptoKeySite.Controllers
                Response.Cookies.Add(cookieTicket);
 
                string returnUrl = string.IsNullOrEmpty(Request.QueryString["ReturnUrl"])
-                                     ? "~/"
-                                     : Request.QueryString["ReturnUrl"];
+                  ? "~/"
+                  : Request.QueryString["ReturnUrl"];
 
                return Redirect(returnUrl);
             }

@@ -167,11 +167,12 @@ namespace DecryptESD.IO
          byte[] bXml;
          using (MemoryStream msXml = new MemoryStream())
          {
-            using (XmlWriter xw = XmlWriter.Create(msXml, new XmlWriterSettings
-            {
-               OmitXmlDeclaration = true,
-               Encoding = Encoding.Unicode
-            }))
+            using (XmlWriter xw = XmlWriter.Create(msXml,
+               new XmlWriterSettings
+               {
+                  OmitXmlDeclaration = true,
+                  Encoding = Encoding.Unicode
+               }))
             {
                XmlMetadata.Save(xw);
             }
@@ -183,11 +184,12 @@ namespace DecryptESD.IO
 
             msXml.Position = 0;
             msXml.SetLength(0);
-            using (XmlWriter xw = XmlWriter.Create(msXml, new XmlWriterSettings
-            {
-               OmitXmlDeclaration = true,
-               Encoding = Encoding.Unicode
-            }))
+            using (XmlWriter xw = XmlWriter.Create(msXml,
+               new XmlWriterSettings
+               {
+                  OmitXmlDeclaration = true,
+                  Encoding = Encoding.Unicode
+               }))
             {
                XmlMetadata.Save(xw);
             }
@@ -229,8 +231,8 @@ namespace DecryptESD.IO
                   _file.Position = sizeof(WimHeader) + i * IntegrityTable.Header.ChunkSize;
 
                   int chunkSize = _file.Position + IntegrityTable.Header.ChunkSize > Header.XmlData.OffsetInWim
-                                     ? (int)(Header.XmlData.OffsetInWim - _file.Position)
-                                     : (int)IntegrityTable.Header.ChunkSize;
+                     ? (int)(Header.XmlData.OffsetInWim - _file.Position)
+                     : (int)IntegrityTable.Header.ChunkSize;
 
                   byte[] data = _reader.ReadBytes(chunkSize);
 

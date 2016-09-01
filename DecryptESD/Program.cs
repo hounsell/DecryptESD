@@ -7,14 +7,43 @@ namespace DecryptESD
 {
    internal class Program
    {
-      public static CliOptions Options;
+      public static object Options;
+      public static string OptionVerb;
 
       private static void Main(string[] args)
       {
-         Options = new CliOptions();
-         if (!Parser.Default.ParseArguments(args, Options)) return;
+         CliOptions baseOptions = new CliOptions();
+         if (!Parser.Default.ParseArguments(args,
+            baseOptions,
+            (s, o) =>
+            {
+               OptionVerb = s;
+               Options = o;
+            }))
+         {
+            Environment.Exit(Parser.DefaultExitCodeFail);
+         }
 
-         if (string.IsNullOrEmpty(Options.CustomKey))
+
+         switch (OptionVerb)
+         {
+            case "decrypt":
+               {
+                  DecryptEsd((DecryptOptions)Options);
+                  break;
+               }
+
+            case "update":
+               {
+                  UpdateKeys((UpdateOptions)Options);
+                  break;
+               }
+         }
+      }
+
+      private static void DecryptEsd(DecryptOptions options)
+      {
+         if (string.IsNullOrEmpty(options.CustomKey))
          {
             CryptoKey.LoadKeysFromXml();
          }
@@ -22,7 +51,7 @@ namespace DecryptESD
          {
             try
             {
-               CryptoKey.UseCustomKey(Options.CustomKey);
+               CryptoKey.UseCustomKey(options.CustomKey);
             }
             catch (FormatException)
             {
@@ -31,7 +60,7 @@ namespace DecryptESD
             }
          }
 
-         foreach (string file in Options.EsdFiles)
+         foreach (string file in options.EsdFiles)
          {
             if (File.Exists(file))
             {
@@ -54,6 +83,32 @@ namespace DecryptESD
             else
             {
                Console.WriteLine($"The file \"{file}\" does not exist.");
+            }
+         }
+      }
+
+      private static void UpdateKeys(UpdateOptions options)
+      {
+         if (string.IsNullOrEmpty(options.CustomUrl))
+         {
+            if (options.ForceUpdate)
+            {
+               CryptoKey.ReplaceXmlWithWebFeed();
+            }
+            else
+            {
+               CryptoKey.MergeWebFeedIntoXml();
+            }
+         }
+         else
+         {
+            if (options.ForceUpdate)
+            {
+               CryptoKey.ReplaceXmlWithWebFeed(options.CustomUrl);
+            }
+            else
+            {
+               CryptoKey.MergeWebFeedIntoXml(options.CustomUrl);
             }
          }
       }
