@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Xml.Linq;
-using System.Xml.Schema;
 
 namespace DecryptESD
 {
    public class CryptoKey
    {
-      private const string XML_FEED_URL = "http://key.bld.pm/feed/";
+      private static readonly string xmlFeedUrl = ConfigurationManager.AppSettings["XmlFeedURL"];
       private const string XML_FILE_NAME = "CryptoKeys.xml";
 
       public int FirstBuild { get; }
@@ -19,7 +19,8 @@ namespace DecryptESD
       public static CryptoKey[] Keys { get; private set; }
 
 
-      public string KeyBase64 => Convert.ToBase64String(Key ?? new byte[] {});
+      public string KeyBase64 => Convert.ToBase64String(Key ?? new byte[]
+         { });
 
       private static string XmlPath => Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) ?? "", XML_FILE_NAME);
 
@@ -46,7 +47,7 @@ namespace DecryptESD
          }
       }
 
-      public static void ReplaceXmlWithWebFeed() => ReplaceXmlWithWebFeed(XML_FEED_URL);
+      public static void ReplaceXmlWithWebFeed() => ReplaceXmlWithWebFeed(xmlFeedUrl);
 
       public static void ReplaceXmlWithWebFeed(string url)
       {
@@ -61,7 +62,7 @@ namespace DecryptESD
          }
       }
 
-      public static void MergeWebFeedIntoXml() => MergeWebFeedIntoXml(XML_FEED_URL);
+      public static void MergeWebFeedIntoXml() => MergeWebFeedIntoXml(xmlFeedUrl);
 
       public static void MergeWebFeedIntoXml(string url)
       {
@@ -73,8 +74,8 @@ namespace DecryptESD
          {
             XDocument xCurrent = XDocument.Load(fStr);
             List<CryptoKey> ckCurrent = (from k in xCurrent.Descendants("key")
-                                     orderby int.Parse(k.Attribute("build").Value)
-                                     select new CryptoKey(k.Attribute("build").Value, k.Attribute("value").Value)).ToList();
+                                         orderby int.Parse(k.Attribute("build").Value)
+                                         select new CryptoKey(k.Attribute("build").Value, k.Attribute("value").Value)).ToList();
 
             XDocument xFeed = XDocument.Load(str);
             CryptoKey[] ckFeed = (from k in xFeed.Descendants("key")
@@ -83,7 +84,7 @@ namespace DecryptESD
 
             foreach (CryptoKey ck in ckFeed)
             {
-               if (ckCurrent.All(k => k.FirstBuild != ck.FirstBuild))
+               if (ckCurrent.All(k => k.Key != ck.Key))
                {
                   ckCurrent.Add(ck);
                }

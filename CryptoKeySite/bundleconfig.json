@@ -4,5 +4,11 @@
     "inputFiles": [
       "res/ts/default.js"
     ]
+  },
+  {
+    "outputFileName": "res/scss/default.min.css",
+    "inputFiles": [
+      "res/scss/default.css"
+    ]
   }
 ]

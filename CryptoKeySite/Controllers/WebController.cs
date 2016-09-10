@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,14 +17,14 @@ namespace CryptoKeySite.Controllers
       public async Task<ActionResult> Index()
       {
          MongoRepository<CryptoKey> ckr = new MongoRepository<CryptoKey>();
-         return View((await ckr.Select()).OrderByDescending(ck => ck.FirstBuild));
+         return View(await ckr.SelectDescending(ck => ck.FirstBuild));
       }
 
       [Route("~/xml/")]
       public async Task<ActionResult> XmlFeed()
       {
          MongoRepository<CryptoKey> ckr = new MongoRepository<CryptoKey>();
-         IOrderedEnumerable<CryptoKey> results = (await ckr.Select()).OrderByDescending(ck => ck.FirstBuild);
+         List<CryptoKey> results = await ckr.SelectDescending(ck => ck.FirstBuild);
 
          Response.ContentType = "text/xml";
          XDocument xdoc = new XDocument(new XElement("keys",
