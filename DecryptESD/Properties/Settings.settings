@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="XmlFeedURL" Type="System.String" Scope="User">
-      <Value Profile="(Default)">http://key.bld.pm/feed/</Value>
+      <Value Profile="(Default)">http://key.bld.pm/xml/</Value>
     </Setting>
   </Settings>
 </SettingsFile>

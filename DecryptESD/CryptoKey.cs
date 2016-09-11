@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -11,7 +10,7 @@ namespace DecryptESD
 {
    public class CryptoKey
    {
-      private static readonly string xmlFeedUrl = ConfigurationManager.AppSettings["XmlFeedURL"];
+      private static readonly string xmlFeedUrl = Properties.Settings.Default.XmlFeedURL;
       private const string XML_FILE_NAME = "CryptoKeys.xml";
 
       public int FirstBuild { get; }
@@ -70,7 +69,7 @@ namespace DecryptESD
 
          using (HttpWebResponse wres = wreq.GetResponse() as HttpWebResponse)
          using (Stream str = wres.GetResponseStream())
-         using (FileStream fStr = new FileStream(XmlPath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
+         using (FileStream fStr = new FileStream(XmlPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
          {
             XDocument xCurrent = XDocument.Load(fStr);
             List<CryptoKey> ckCurrent = (from k in xCurrent.Descendants("key")
@@ -84,7 +83,7 @@ namespace DecryptESD
 
             foreach (CryptoKey ck in ckFeed)
             {
-               if (ckCurrent.All(k => k.Key != ck.Key))
+               if (ckCurrent.All(k => k.KeyBase64 != ck.KeyBase64))
                {
                   ckCurrent.Add(ck);
                }
