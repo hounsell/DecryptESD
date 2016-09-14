@@ -25,7 +25,7 @@ namespace DecryptESD.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://key.bld.pm/xml/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://key.bld.pm/xml/")]
         public string XmlFeedURL {
             get {
                 return ((string)(this["XmlFeedURL"]));
