@@ -1,26 +1,38 @@
 ﻿@model CryptoKeySite.Models.CryptoKey
 
 @{
-   ViewBag.Title = "Add a CryptoKey";
+    ViewBag.Title = "Add a CryptoKey";
 }
 
 <h2>Add a CryptoKey</h2>
 
 @using (Html.BeginForm())
 {
-   @Html.AntiForgeryToken()
+    @Html.AntiForgeryToken()
 
-   <div class="form-group">
-      @Html.LabelFor(model => model.FirstBuild)
-      @Html.TextBoxFor(model => model.FirstBuild, new { htmlAttributes = new { type = "number" } })
-      @Html.ValidationMessageFor(model => model.FirstBuild, "", new { @class = "text-danger" })
-   </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.FirstBuild)
+        @Html.TextBoxFor(model => model.FirstBuild, new
+        {
+            htmlAttributes = new
+            {
+                type = "number"
+            }
+        })
+        @Html.ValidationMessageFor(model => model.FirstBuild, "", new
+        {
+            @class = "text-danger"
+        })
+    </div>
 
-   <div class="form-group">
-      @Html.LabelFor(model => model.KeyBase64)
-      @Html.TextAreaFor(model => model.KeyBase64)
-      @Html.ValidationMessageFor(model => model.KeyBase64, "", new { @class = "text-danger" })
-   </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.KeyBase64)
+        @Html.TextAreaFor(model => model.KeyBase64)
+        @Html.ValidationMessageFor(model => model.KeyBase64, "", new
+        {
+            @class = "text-danger"
+        })
+    </div>
 
-   <input type="submit" value="Add CryptoKey" class="btn-add" />
+    <input type="submit" value="Add CryptoKey" class="btn-add" />
 }

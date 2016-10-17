@@ -28,16 +28,16 @@ namespace DecryptESD
          switch (OptionVerb)
          {
             case "decrypt":
-               {
-                  DecryptEsd((DecryptOptions)Options);
-                  break;
-               }
+            {
+               DecryptEsd((DecryptOptions)Options);
+               break;
+            }
 
             case "update":
-               {
-                  UpdateKeys((UpdateOptions)Options);
-                  break;
-               }
+            {
+               UpdateKeys((UpdateOptions)Options);
+               break;
+            }
          }
       }
 

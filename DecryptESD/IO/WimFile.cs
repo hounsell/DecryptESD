@@ -75,7 +75,7 @@ namespace DecryptESD.IO
             itHeader = (IntegrityTableHeader)Marshal.PtrToStructure((IntPtr)pTable, typeof(IntegrityTableHeader));
          }
 
-         byte[][] bbHashes = new byte[itHeader.TableRowCount][];
+         var bbHashes = new byte[itHeader.TableRowCount][];
          for (int i = 0; i < bbHashes.Length; i++)
          {
             bbHashes[i] = _reader.ReadBytes(20);
@@ -146,7 +146,7 @@ namespace DecryptESD.IO
             using (MemoryStream msEncrypted = new MemoryStream(bEncrypted))
             using (CryptoStream strCrypto = new CryptoStream(msEncrypted, aesCipher.CreateDecryptor(), CryptoStreamMode.Read))
             {
-               byte[] bDecrypted = new byte[bEncryptedSize - 16];
+               var bDecrypted = new byte[bEncryptedSize - 16];
                strCrypto.Read(bDecrypted, 0, bDecrypted.Length);
 
                _file.Position = rangeOffset;
@@ -242,7 +242,7 @@ namespace DecryptESD.IO
          }
 
          _file.Position = Header.IntegrityTable.OffsetInWim;
-         byte[] bItHeader = new byte[sizeof(IntegrityTableHeader)];
+         var bItHeader = new byte[sizeof(IntegrityTableHeader)];
          IntegrityTableHeader ith = IntegrityTable.Header;
          Marshal.Copy((IntPtr)(&ith), bItHeader, 0, bItHeader.Length);
          _writer.Write(bItHeader);
@@ -256,7 +256,7 @@ namespace DecryptESD.IO
       private unsafe void WriteWimHeader()
       {
          WimHeader whUpdated = Header;
-         byte[] bWhUpdated = new byte[sizeof(WimHeader)];
+         var bWhUpdated = new byte[sizeof(WimHeader)];
          Marshal.Copy((IntPtr)(&whUpdated), bWhUpdated, 0, bWhUpdated.Length);
          _file.Position = 0;
          _writer.Write(bWhUpdated);

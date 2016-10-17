@@ -5,13 +5,14 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Xml.Linq;
+using DecryptESD.Properties;
 
 namespace DecryptESD
 {
    public class CryptoKey
    {
-      private static readonly string xmlFeedUrl = Properties.Settings.Default.XmlFeedURL;
       private const string XML_FILE_NAME = "CryptoKeys.xml";
+      private static readonly string xmlFeedUrl = Settings.Default.XmlFeedURL;
 
       public int FirstBuild { get; }
       public byte[] Key { get; }
@@ -19,7 +20,8 @@ namespace DecryptESD
 
 
       public string KeyBase64 => Convert.ToBase64String(Key ?? new byte[]
-         { });
+      {
+      });
 
       private static string XmlPath => Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) ?? "", XML_FILE_NAME);
 

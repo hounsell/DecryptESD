@@ -16,14 +16,14 @@ namespace CryptoKeySite.Controllers
       [Route("~/")]
       public async Task<ActionResult> Index()
       {
-         MongoRepository<CryptoKey> ckr = new MongoRepository<CryptoKey>();
+         var ckr = new MongoRepository<CryptoKey>();
          return View(await ckr.SelectDescending(ck => ck.FirstBuild));
       }
 
       [Route("~/xml/")]
       public async Task<ActionResult> XmlFeed()
       {
-         MongoRepository<CryptoKey> ckr = new MongoRepository<CryptoKey>();
+         var ckr = new MongoRepository<CryptoKey>();
          List<CryptoKey> results = await ckr.SelectDescending(ck => ck.FirstBuild);
 
          Response.ContentType = "text/xml";
@@ -36,16 +36,19 @@ namespace CryptoKeySite.Controllers
          return new EmptyResult();
       }
 
-      [Route("~/add/"), Authorize]
+      [Route("~/add/")]
+      [Authorize]
       public ActionResult Add() => View();
 
-      [Route("~/add/"), Authorize, HttpPost]
+      [Route("~/add/")]
+      [Authorize]
+      [HttpPost]
       public async Task<ActionResult> Add(CryptoKey ck)
       {
          if (ModelState.IsValid)
          {
             ck.Id = Guid.NewGuid();
-            MongoRepository<CryptoKey> ckr = new MongoRepository<CryptoKey>();
+            var ckr = new MongoRepository<CryptoKey>();
             await ckr.Insert(ck);
 
             return RedirectToAction(nameof(Index));
@@ -54,10 +57,11 @@ namespace CryptoKeySite.Controllers
          return View(ck);
       }
 
-      [Route("~/delete/{id}/"), Authorize]
+      [Route("~/delete/{id}/")]
+      [Authorize]
       public async Task<ActionResult> Delete(Guid id)
       {
-         MongoRepository<CryptoKey> ckr = new MongoRepository<CryptoKey>();
+         var ckr = new MongoRepository<CryptoKey>();
          await ckr.DeleteById(id);
 
          return RedirectToAction(nameof(Index));
@@ -73,7 +77,8 @@ namespace CryptoKeySite.Controllers
       [Route("~/login/")]
       public ActionResult Login() => View();
 
-      [Route("~/login/"), HttpPost]
+      [Route("~/login/")]
+      [HttpPost]
       public ActionResult Login(LoginViewModel lvm)
       {
          if (ModelState.IsValid)
@@ -118,7 +123,8 @@ namespace CryptoKeySite.Controllers
          return View();
       }
 
-      [Route("~/register/"), HttpPost]
+      [Route("~/register/")]
+      [HttpPost]
       public ActionResult Register(RegisterViewModel rvm)
       {
          if (!bool.Parse(ConfigurationManager.AppSettings["EnableRegistrations"]))

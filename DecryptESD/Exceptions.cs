@@ -2,9 +2,15 @@
 
 namespace DecryptESD
 {
-   public class NoValidCryptoKeyException : Exception { }
+   public class NoValidCryptoKeyException : Exception
+   {
+   }
 
-   public class UnencryptedImageException : Exception { }
+   public class UnencryptedImageException : Exception
+   {
+   }
 
-   public class NoImageKeyException : Exception { }
+   public class NoImageKeyException : Exception
+   {
+   }
 }

@@ -32,8 +32,14 @@ namespace CryptoKeySite.Models
 
       public async Task<T> SelectById(Guid id) => await _collection.Find(Builders<T>.Filter.Eq(b => b.Id, id)).SingleOrDefaultAsync();
 
-      public async Task Insert(T item) { await _collection.InsertOneAsync(item); }
+      public async Task Insert(T item)
+      {
+         await _collection.InsertOneAsync(item);
+      }
 
-      public async Task DeleteById(Guid id) { await _collection.DeleteOneAsync(Builders<T>.Filter.Eq(b => b.Id, id)); }
+      public async Task DeleteById(Guid id)
+      {
+         await _collection.DeleteOneAsync(Builders<T>.Filter.Eq(b => b.Id, id));
+      }
    }
 }

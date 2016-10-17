@@ -1,6 +1,6 @@
 var KeySite;
 (function (KeySite) {
-    function CopyKey(mev) {
+    function copyKey(mev) {
         var key = this;
         var range = document.createRange();
         range.selectNode(key);
@@ -9,11 +9,10 @@ var KeySite;
         selection.addRange(range);
         document.execCommand("copy");
     }
-    KeySite.CopyKey = CopyKey;
+    KeySite.copyKey = copyKey;
 })(KeySite || (KeySite = {}));
-var Keys = document.getElementsByClassName("break");
-for (var i = 0; i < Keys.length; i++) {
-    Keys[i].addEventListener("click", KeySite.CopyKey);
+var keys = document.getElementsByClassName("break");
+for (var i = 0; i < keys.length; i++) {
+    keys[i].addEventListener("click", KeySite.copyKey);
 }
 ;
-//# sourceMappingURL=default.js.map

@@ -27,6 +27,8 @@ namespace CryptoKeySite
             : "MongoAuth";
       }
 
-      public static void SetupIndexes() { }
+      public static void SetupIndexes()
+      {
+      }
    }
 }

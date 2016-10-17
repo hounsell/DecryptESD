@@ -8,17 +8,17 @@ namespace DecryptESD
 {
    public class CliOptions
    {
-      public CliOptions()
-      {
-         DecryptVerb = new DecryptOptions();
-         UpdateVerb = new UpdateOptions();
-      }
-
       [VerbOption("decrypt", HelpText = "Decrypt one or more ESD files")]
       public DecryptOptions DecryptVerb { get; set; }
 
       [VerbOption("update", HelpText = "Update the list of known RSA keys used for decrypting ESD files")]
       public UpdateOptions UpdateVerb { get; set; }
+
+      public CliOptions()
+      {
+         DecryptVerb = new DecryptOptions();
+         UpdateVerb = new UpdateOptions();
+      }
 
       [HelpOption]
       public string GetUsage()
