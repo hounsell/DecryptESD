@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -13,6 +14,8 @@ namespace WIMCore
         private readonly FileStream _file;
 
         private WimHeader _header;
+
+        private WimImage[] _images;
         private IntegrityTable _integrityTable;
         private LookupTable _lookupTable;
         private readonly BinaryReader _reader;
@@ -29,7 +32,14 @@ namespace WIMCore
             _writer = new BinaryWriter(_file, Encoding.Unicode, true);
 
             ReadWimHeader();
+            _images = new WimImage[_header.ImageCount];
+
             ReadLookupTable();
+
+            for (int i = 0; i < ImageCount; i++)
+            {
+                LoadImageMetadata(i);
+            }
         }
 
         public void Dispose()
@@ -161,6 +171,46 @@ namespace WIMCore
             }
 
             _integrityTable = new IntegrityTable(itHeader, bbHashes);
+        }
+
+        private unsafe void LoadImageMetadata(int imageIndex)
+        {
+            if (_lookupTable == null)
+            {
+                ReadLookupTable();
+            }
+
+            if (imageIndex >= _header.ImageCount)
+            {
+                throw new ArgumentOutOfRangeException(nameof(imageIndex));
+            }
+
+            long position = _lookupTable.Entries.Where(l => (l.Flags & ResourceHeaderFlags.Metadata) == ResourceHeaderFlags.Metadata).OrderBy(l => l.OffsetInWim).Skip(imageIndex).First().OffsetInWim;
+
+            _file.Position = position;
+
+            byte[] bTable = _reader.ReadBytes(sizeof(SecurityTableHeader));
+            SecurityTableHeader stHeader;
+            fixed (byte* pTable = bTable)
+            {
+                stHeader = Marshal.PtrToStructure<SecurityTableHeader>((IntPtr)pTable);
+            }
+
+            var sdLengths = new ulong[stHeader.EntryCount];
+            for (int i = 0; i < sdLengths.Length; i++)
+            {
+                sdLengths[i] = _reader.ReadUInt64();
+            }
+
+            var sdDescriptors = new byte[stHeader.EntryCount][];
+            for (int i = 0; i < sdLengths.Length; i++)
+            {
+                sdDescriptors[i] = _reader.ReadBytes((int)sdLengths[i]);
+            }
+
+            SecurityTable st = new SecurityTable(stHeader, sdDescriptors);
+
+            _images[imageIndex] = new WimImage(st);
         }
 
         private void ReadXmlMetadata()
