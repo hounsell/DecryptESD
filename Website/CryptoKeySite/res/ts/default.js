@@ -16,3 +16,4 @@ for (var i = 0; i < keys.length; i++) {
     keys[i].addEventListener("click", KeySite.copyKey);
 }
 ;
+//# sourceMappingURL=default.js.map

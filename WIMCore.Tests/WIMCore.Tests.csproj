@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>    
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="TestFiles\Error-InvalidMagic.wim" />
+    <None Remove="TestFiles\Error-InvalidSize.wim" />
+    <None Remove="TestFiles\Win10-RS1-CompressFast.wim" />
+    <None Remove="TestFiles\Win10-RS1-CompressMax.wim" />
+    <None Remove="TestFiles\Win10-RS1-CompressNone.wim" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="TestFiles\Error-InvalidMagic.wim">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestFiles\Error-InvalidSize.wim">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestFiles\Win10-RS1-CompressFast.wim">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestFiles\Win10-RS1-CompressMax.wim">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestFiles\Win10-RS1-CompressNone.wim">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0-preview-20170125-04" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.1.10-rc2" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.0.8-rc2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WIMCore\WIMCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+
+</Project>
