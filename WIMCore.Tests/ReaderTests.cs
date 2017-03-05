@@ -1,5 +1,6 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using WIMCore.Exceptions;
 
 namespace WIMCore.Tests
 {
@@ -9,26 +10,27 @@ namespace WIMCore.Tests
         [TestMethod]
         public void LoadInvalidSizeWithError()
         {
-            WimNotValidException wnvex = Assert.ThrowsException<WimNotValidException>(() =>
+            WimInvalidException wnvex = Assert.ThrowsException<WimInvalidException>(() =>
             {
                 using (WimFile wf = new WimFile($"{AppContext.BaseDirectory}\\TestFiles\\Error-InvalidSize.wim"))
                 {
                 }
             });
 
-            Assert.AreEqual(WimNotValidException.ErrorType.InvalidSize, wnvex.Type);
+            Assert.AreEqual(WimInvalidExceptionType.InvalidSize, wnvex.Type);
         }
+
         [TestMethod]
         public void LoadInvalidMagicWithError()
         {
-            WimNotValidException wnvex = Assert.ThrowsException<WimNotValidException>(() =>
+            WimInvalidException wnvex = Assert.ThrowsException<WimInvalidException>(() =>
             {
                 using (WimFile wf = new WimFile($"{AppContext.BaseDirectory}\\TestFiles\\Error-InvalidMagic.wim"))
                 {
                 }
             });
 
-            Assert.AreEqual(WimNotValidException.ErrorType.InvalidMagic, wnvex.Type);
+            Assert.AreEqual(WimInvalidExceptionType.InvalidMagic, wnvex.Type);
         }
 
         [TestMethod]
@@ -36,7 +38,6 @@ namespace WIMCore.Tests
         {
             using (WimFile wf = new WimFile($"{AppContext.BaseDirectory}\\TestFiles\\Win10-RS1-CompressNone.wim"))
             {
-                Assert.IsNotNull(wf);
                 Assert.IsTrue((wf.Flags & WimHeaderFlags.Compressed) == 0);
             }
         }
@@ -46,7 +47,6 @@ namespace WIMCore.Tests
         {
             using (WimFile wf = new WimFile($"{AppContext.BaseDirectory}\\TestFiles\\Win10-RS1-CompressFast.wim"))
             {
-                Assert.IsNotNull(wf);
                 Assert.IsTrue((wf.Flags & WimHeaderFlags.CompressXpress) > 0);
             }
         }
@@ -56,8 +56,40 @@ namespace WIMCore.Tests
         {
             using (WimFile wf = new WimFile($"{AppContext.BaseDirectory}\\TestFiles\\Win10-RS1-CompressMax.wim"))
             {
-                Assert.IsNotNull(wf);
                 Assert.IsTrue((wf.Flags & WimHeaderFlags.CompressLzx) > 0);
+            }
+        }
+
+        [TestMethod]
+        public void LoadWin10Rs1MultipleImages()
+        {
+            using (WimFile wf = new WimFile($"{AppContext.BaseDirectory}\\TestFiles\\Win10-RS1-MultiImage-Integrity.wim"))
+            {
+                Assert.IsTrue(wf.ImageCount == 2);
+            }
+        }
+
+        [TestMethod]
+        public void CheckIntegrityWithNoIntegrityData()
+        {
+            WimIntegrityException ex = Assert.ThrowsException<WimIntegrityException>(() =>
+            {
+                using (WimFile wf = new WimFile($"{AppContext.BaseDirectory}\\TestFiles\\Win10-RS1-CompressNone.wim"))
+                {
+                    bool succcess = wf.CheckIntegrity();
+                }
+            });
+
+            Assert.AreEqual(WimIntegrityExceptionType.NoIntegrityData, ex.Type);
+        }
+
+        [TestMethod]
+        public void LoadWin10WithIntegrityAndCheck()
+        {
+            using (WimFile wf = new WimFile($"{AppContext.BaseDirectory}\\TestFiles\\Win10-RS1-Integrity.wim"))
+            {
+                bool success = wf.CheckIntegrity();
+                Assert.IsTrue(success);
             }
         }
     }

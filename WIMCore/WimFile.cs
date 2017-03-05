@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
+using WIMCore.Exceptions;
 
 namespace WIMCore
 {
@@ -12,10 +14,12 @@ namespace WIMCore
 
         private WimHeader _header;
         private IntegrityTable _integrityTable;
+        private LookupTable _lookupTable;
         private readonly BinaryReader _reader;
         private readonly BinaryWriter _writer;
         private XDocument _xmlMetadata;
 
+        public uint ImageCount => _header.ImageCount;
         public WimHeaderFlags Flags => _header.WimFlags;
 
         public WimFile(string path)
@@ -25,6 +29,7 @@ namespace WIMCore
             _writer = new BinaryWriter(_file, Encoding.Unicode, true);
 
             ReadWimHeader();
+            ReadLookupTable();
         }
 
         public void Dispose()
@@ -36,11 +41,53 @@ namespace WIMCore
             _file.Dispose();
         }
 
+        public unsafe bool CheckIntegrity()
+        {
+            if (_header.IntegrityTable.OffsetInWim == 0)
+            {
+                throw new WimIntegrityException(WimIntegrityExceptionType.NoIntegrityData);
+            }
+
+            if (_integrityTable == null)
+            {
+                ReadIntegrityTable();
+            }
+
+            bool verified = true;
+
+            long chunkStart = 0;
+            long chunkStartNum = chunkStart / _integrityTable.Header.ChunkSize;
+            long chunkEnd = _header.XmlData.OffsetInWim - sizeof(WimHeader);
+            long chunkEndNum = chunkEnd / _integrityTable.Header.ChunkSize;
+
+            using (SHA1 sha = SHA1.Create())
+            {
+                for (long i = chunkStartNum; i <= chunkEndNum; i++)
+                {
+                    _file.Position = sizeof(WimHeader) + i * _integrityTable.Header.ChunkSize;
+
+                    int chunkSize = _file.Position + _integrityTable.Header.ChunkSize > _header.XmlData.OffsetInWim
+                        ? (int)(_header.XmlData.OffsetInWim - _file.Position)
+                        : (int)_integrityTable.Header.ChunkSize;
+
+                    byte[] data = _reader.ReadBytes(chunkSize);
+                    byte[] computedHash = sha.ComputeHash(data, 0, data.Length);
+
+                    for (int j = 0; j < computedHash.Length; j++)
+                    {
+                        verified &= computedHash[j] == _integrityTable.Hashes[i][j];
+                    }
+                }
+            }
+
+            return verified;
+        }
+
         private unsafe void ReadWimHeader()
         {
             if (_file.Length < sizeof(WimHeader))
             {
-                throw new WimNotValidException(WimNotValidException.ErrorType.InvalidSize);
+                throw new WimInvalidException(WimInvalidExceptionType.InvalidSize);
             }
 
             _file.Position = 0;
@@ -74,19 +121,26 @@ namespace WIMCore
 
             if (!valid)
             {
-                throw new WimNotValidException(WimNotValidException.ErrorType.InvalidMagic);
+                throw new WimInvalidException(WimInvalidExceptionType.InvalidMagic);
             }
         }
 
-        private void ReadXmlMetadata()
+        private unsafe void ReadLookupTable()
         {
-            _file.Position = _header.XmlData.OffsetInWim;
+            _file.Position = _header.LookupTable.OffsetInWim;
+            ulong entries = _header.LookupTable.OriginalSize / (ulong)sizeof(LookupEntry);
 
-            byte[] bXml = _reader.ReadBytes((int)_header.XmlData.SizeInWim);
-            using (MemoryStream mStr = new MemoryStream(bXml))
+            var entryArray = new LookupEntry[entries];
+            for (ulong i = 0; i < entries; i++)
             {
-                _xmlMetadata = XDocument.Load(mStr);
+                byte[] bEntry = _reader.ReadBytes(sizeof(LookupEntry));
+                fixed (byte* pEntry = bEntry)
+                {
+                    entryArray[i] = Marshal.PtrToStructure<LookupEntry>((IntPtr)pEntry);
+                }
             }
+
+            _lookupTable = new LookupTable(entryArray);
         }
 
         private unsafe void ReadIntegrityTable()
@@ -107,6 +161,17 @@ namespace WIMCore
             }
 
             _integrityTable = new IntegrityTable(itHeader, bbHashes);
+        }
+
+        private void ReadXmlMetadata()
+        {
+            _file.Position = _header.XmlData.OffsetInWim;
+
+            byte[] bXml = _reader.ReadBytes((int)_header.XmlData.SizeInWim);
+            using (MemoryStream mStr = new MemoryStream(bXml))
+            {
+                _xmlMetadata = XDocument.Load(mStr);
+            }
         }
     }
 }

@@ -18,6 +18,8 @@
     <None Remove="TestFiles\Win10-RS1-CompressFast.wim" />
     <None Remove="TestFiles\Win10-RS1-CompressMax.wim" />
     <None Remove="TestFiles\Win10-RS1-CompressNone.wim" />
+    <None Remove="TestFiles\Win10-RS1-Integrity.wim" />
+    <None Remove="TestFiles\Win10-RS1-MultiImage-Integrity.wim" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,6 +38,12 @@
     <Content Include="TestFiles\Win10-RS1-CompressNone.wim">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="TestFiles\Win10-RS1-Integrity.wim">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestFiles\Win10-RS1-MultiImage-Integrity.wim">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -50,6 +58,12 @@
 
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="TestFiles\Win10-RS1-MultiImage-Integrity.wim">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -1,21 +1,28 @@
-# DecryptESD
+# WIMCore
+WIMCore is a library for the reading and writing of Windows Image files (WIM).
+
+## DecryptESD
 Remove encryption from the ESD files distributed through the Windows Store infrastructure with DecryptESD.
 
-DecryptESD currently targets .NET Framework 4.5, allowing it to be used back to Windows Vista SP2. Compatibility with the latest versions of Mono as of DecryptESD v0.3.2 has been confirmed on both Linux and OS X.
+DecryptESD currently targets .NET Core 1.1.
+
+A legacy version is available that uses .NET Framework 4.5, allowing it to be used back to Windows Vista SP2. Compatibility with the latest versions of Mono as of DecryptESD v0.3.2 has been confirmed on both Linux and OS X.
 
 ## Current State
+* Currently being rewritten to use the current version of the .NET Core Framework.
+* Unit tests are being added to the rewritten .NET Core version.
+* .NET Core Rewrite also adds more generalised WIM library support in a new "WIMCore" Library.
+* This new rewrite also adds a lot more sanity checks and error handling.
+
+## Current State (Legacy version)
 * ESDs are decrypted successfully, both pre-14361 and post-14361.
 * ESDs will be almost identical byte-for-byte to esddecrypt output - the only differences will be due to DecryptESD dropping indentation in the XML data, which is what DISM does.
 * XML and Integrity tables are corrected after decryption
 
 ## Future plans
-* Unit testing is probably a good idea and entirely implementable
-* .NET Core support - include testing on OS X and Linux
-* Extend functionality
 * Localise into other languages
-* oh, and error handling is probably pretty important too.
 
-## Changelog
+## Changelog (Legacy)
 * v0.4.0
   * Allow update from a remote feed.
     * Defaults to new CryptoKey website XML feed, provided via BuildFeed team. Alternate feeds can be set via config or command argument.
@@ -47,7 +54,7 @@ DecryptESD currently targets .NET Framework 4.5, allowing it to be used back to 
   * Initial release.
 
 ## License
-Copyright © 2016, Thomas Hounsell.
+Copyright © 2017, Thomas Hounsell.
 
 All rights reserved.
 
