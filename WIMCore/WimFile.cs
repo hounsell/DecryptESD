@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -15,7 +16,7 @@ namespace WIMCore
 
         private WimHeader _header;
 
-        private WimImage[] _images;
+        private readonly WimImage[] _images;
         private IntegrityTable _integrityTable;
         private LookupTable _lookupTable;
         private readonly BinaryReader _reader;
@@ -35,11 +36,6 @@ namespace WIMCore
             _images = new WimImage[_header.ImageCount];
 
             ReadLookupTable();
-
-            for (int i = 0; i < ImageCount; i++)
-            {
-                LoadImageMetadata(i);
-            }
         }
 
         public void Dispose()
@@ -91,6 +87,14 @@ namespace WIMCore
             }
 
             return verified;
+        }
+
+        public void LoadImageMetadata()
+        {
+            for (int i = 0; i < ImageCount; i++)
+            {
+                LoadImageMetadata(i);
+            }
         }
 
         private unsafe void ReadWimHeader()
@@ -185,9 +189,9 @@ namespace WIMCore
                 throw new ArgumentOutOfRangeException(nameof(imageIndex));
             }
 
-            long position = _lookupTable.Entries.Where(l => (l.Flags & ResourceHeaderFlags.Metadata) == ResourceHeaderFlags.Metadata).OrderBy(l => l.OffsetInWim).Skip(imageIndex).First().OffsetInWim;
+            LookupEntry metadataEntry = _lookupTable.Entries.Where(l => (l.Flags & ResourceHeaderFlags.Metadata) == ResourceHeaderFlags.Metadata).OrderBy(l => l.OffsetInWim).Skip(imageIndex).First();
 
-            _file.Position = position;
+            _file.Position = metadataEntry.OffsetInWim;
 
             byte[] bTable = _reader.ReadBytes(sizeof(SecurityTableHeader));
             SecurityTableHeader stHeader;
@@ -210,7 +214,40 @@ namespace WIMCore
 
             SecurityTable st = new SecurityTable(stHeader, sdDescriptors);
 
-            _images[imageIndex] = new WimImage(st);
+            var dirEntries = new List<DirectoryTableEntry>();
+            while (_file.Position < metadataEntry.OffsetInWim + (long)metadataEntry.SizeInWim)
+            {
+                long startPosition = _file.Position;
+                byte[] bdEntry = _reader.ReadBytes(sizeof(DirectoryEntry));
+                DirectoryEntry dEntry;
+                fixed (byte* pdEntry = bdEntry)
+                {
+                    dEntry = Marshal.PtrToStructure<DirectoryEntry>((IntPtr)pdEntry);
+                }
+
+                string name = Encoding.Unicode.GetString(_reader.ReadBytes(dEntry.FileNameLength));
+
+                var altStreams = new Dictionary<string, StreamEntry>(dEntry.Streams);
+                for (int i = 0; i < dEntry.Streams; i++)
+                {
+                    byte[] bsEntry = _reader.ReadBytes(sizeof(StreamEntry));
+                    StreamEntry sEntry;
+                    fixed (byte* psEntry = bsEntry)
+                    {
+                        sEntry = Marshal.PtrToStructure<StreamEntry>((IntPtr)psEntry);
+                    }
+
+                    string sName = Encoding.Unicode.GetString(_reader.ReadBytes(sEntry.StreamNameLength));
+
+                    altStreams.Add(sName, sEntry);
+                }
+
+                dirEntries.Add(new DirectoryTableEntry(name, dEntry, altStreams));
+
+                // TODO: Transveral logic
+            }
+
+            _images[imageIndex] = new WimImage(st, dirEntries.ToArray());
         }
 
         private void ReadXmlMetadata()

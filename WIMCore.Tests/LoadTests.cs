@@ -38,6 +38,7 @@ namespace WIMCore.Tests
         {
             using (WimFile wf = new WimFile($"{AppContext.BaseDirectory}\\TestFiles\\Win10-RS1-CompressNone.wim"))
             {
+                wf.LoadImageMetadata();
                 Assert.IsTrue((wf.Flags & WimHeaderFlags.Compressed) == 0);
             }
         }
@@ -47,6 +48,7 @@ namespace WIMCore.Tests
         {
             using (WimFile wf = new WimFile($"{AppContext.BaseDirectory}\\TestFiles\\Win10-RS1-CompressFast.wim"))
             {
+                wf.LoadImageMetadata();
                 Assert.IsTrue((wf.Flags & WimHeaderFlags.CompressXpress) > 0);
             }
         }
@@ -56,6 +58,7 @@ namespace WIMCore.Tests
         {
             using (WimFile wf = new WimFile($"{AppContext.BaseDirectory}\\TestFiles\\Win10-RS1-CompressMax.wim"))
             {
+                wf.LoadImageMetadata();
                 Assert.IsTrue((wf.Flags & WimHeaderFlags.CompressLzx) > 0);
             }
         }
@@ -65,6 +68,7 @@ namespace WIMCore.Tests
         {
             using (WimFile wf = new WimFile($"{AppContext.BaseDirectory}\\TestFiles\\Win10-RS1-MultiImage-Integrity.wim"))
             {
+                wf.LoadImageMetadata();
                 Assert.IsTrue(wf.ImageCount == 2);
             }
         }
